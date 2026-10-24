@@ -1,0 +1,11 @@
+{
+  "title_name": "Turok: Evolution",
+  "title_id": "41430004",
+  "project": "..",
+  "exe": "turok_recomp",
+  "launcher": "turok_recomp_launcher",
+  "release_name": "turok",
+  "images": [
+    {"sha1": "e6510e44ca99b67b9015c27f04bc1b49ce8c0f9a"}
+  ]
+}
