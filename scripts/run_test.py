@@ -88,6 +88,7 @@ def main():
     if out.exists():
         shutil.rmtree(out)
     (out / "saves").mkdir(parents=True)
+    (out / "user").mkdir()
 
     env = dict(os.environ)
     env.update({
@@ -95,6 +96,10 @@ def main():
         "RECOMP_WINDOW_BACKGROUND": "1",
         "RECOMP_GAME_DIR": str(MIRROR),
         "RECOMP_SAVE_DIR": str(out / "saves"),
+        # Its own settings folder, empty: the player's launcher settings
+        # (fullscreen, a frame cap, a resolution scale) never apply to a test
+        # run, so every run starts from the defaults plus what it is given.
+        "RECOMP_USER_DIR": str(out / "user"),
         "RECOMP_INPUT_SEQ": LEVEL_SEQ + "," + args.seq if args.to_level else args.seq,
     })
     if args.dump:
