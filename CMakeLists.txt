@@ -93,7 +93,7 @@ endif()
 # the game builds for each object, and the toolkit scales it on screen draws.
 # The front end and the movies are shown 4:3 (src/recomp_manual.c).
 if(COMMAND recomp_title_widescreen)
-    recomp_title_widescreen(HOR_PLUS REGISTER 96)
+    recomp_title_widescreen(HOR_PLUS REGISTER 96 187)
 endif()
 
 # Turok steps its game by a QueryPerformanceCounter delta (sub_00028B60), so

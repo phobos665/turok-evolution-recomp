@@ -499,3 +499,26 @@ void sub_00054A80(void)
     }
     sub_00054A80_gen();
 }
+
+/* ── Widescreen: edge effects span the screen ──────────────────
+ *
+ * Every 2D image the game draws goes through sub_0009C9C0, one
+ * pre-transformed quad each: the health box, the front end's panels, and
+ * the damage indicator, which lights the side a hit came from with
+ * quarter-screen quads that overhang the screen's edge (x 329.6 to 649.6).
+ * Half the width, those read as HUD pieces to the renderer and were
+ * squeezed into the middle 4:3, so the red stopped short of the screen's
+ * edges. EDGE spans a draw that reaches the left or right edge and leaves
+ * the rest to the renderer's judgement, so the health box stays at 4:3. */
+extern void xbox_D3D8SetTwoDPlacement(int placement, uint32_t tag);
+extern void sub_0009C9C0_gen(void);
+
+#define TK_2D_AUTO 0            /* XBOX_D3D8_2D_AUTO */
+#define TK_2D_EDGE 6            /* XBOX_D3D8_2D_EDGE */
+
+void sub_0009C9C0(void)
+{
+    xbox_D3D8SetTwoDPlacement(TK_2D_EDGE, 0x0009C9C0u);
+    sub_0009C9C0_gen();
+    xbox_D3D8SetTwoDPlacement(TK_2D_AUTO, 0);
+}
