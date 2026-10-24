@@ -96,6 +96,15 @@ if(COMMAND recomp_title_widescreen)
     recomp_title_widescreen(HOR_PLUS REGISTER 96)
 endif()
 
+# Turok steps its game by a QueryPerformanceCounter delta (sub_00028B60), so
+# it plays at the right speed at any frame rate: capped and uncapped runs of
+# the same scripted walk and jump match at the same wall-clock moments. Its
+# launcher and F10 offer caps above 60 and uncapped; adaptive 60 stays the
+# default.
+if(COMMAND recomp_title_timing)
+    recomp_title_timing(DELTA)
+endif()
+
 # The settings window: video options, input bindings, then starts the game.
 if(COMMAND recomp_add_launcher)
     recomp_add_launcher(${PROJECT_NAME}_launcher ${PROJECT_NAME}.exe)
