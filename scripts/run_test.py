@@ -1,13 +1,14 @@
 """Run the built game unattended: muted, behind other windows, scripted input,
 against a mirror of the game folder so nothing it saves lands in your copy.
 
-    py -3 scripts/run_test.py --seconds 120 --tag boot
+    py -3 scripts/run_test.py --seconds 120 --tag boot      (python3 off Windows)
     py -3 scripts/run_test.py --seq "20000:start,25000:a" --dump 300 -- RECOMP_FPS=5
 
 Everything goes in .pipeline/runs/<tag>/: run.log (stdout and stderr), frames/
 (frame dumps, with --dump N every N swaps), saves/ (RECOMP_SAVE_DIR). The
-mirror is .pipeline/mirror/: a junction to Data/, hard links to default.xbe and
-the .tre archives, and its own UDATA/TDATA, which --keep-saves leaves alone
+mirror is .pipeline/mirror/: a junction (a symlink off Windows) to Data/, hard
+links to default.xbe and the .tre archives, and its own UDATA/TDATA, which
+--keep-saves leaves alone
 between runs (otherwise they are cleared so every run is a first boot).
 
 Extra NAME=VALUE arguments after -- are added to the environment.
@@ -25,11 +26,18 @@ ROOT = Path(__file__).resolve().parent.parent
 GAME = ROOT / "game"
 MIRROR = ROOT / ".pipeline" / "mirror"
 RUNS = ROOT / ".pipeline" / "runs"
-EXE = ROOT / "build" / "Release" / "turok_recomp.exe"
+EXE = ROOT / "build" / "Release" / ("turok_recomp.exe" if os.name == "nt" else "turok_recomp")
 
 # A script that presses nothing for an hour: a connected pad must never drive
 # an unattended run, and a script owns the pad.
 IDLE_SEQ = "3600000:back:1"
+
+# Title screen, main menu, New Game, into the first jungle level
+# (pod01_01_ttjungle), clocked from the first pad read. The title screen is
+# up ~35 s in; the level is playable from ~80 s. --to-level puts this in
+# front of --seq, whose steps should then start after 80000.
+LEVEL_SEQ = ("37000:start,39000:start,44000:a,49000:a,54000:a,59000:a,"
+             "64000:a,69000:a,74000:a")
 
 
 def make_mirror(keep_saves):
@@ -42,8 +50,11 @@ def make_mirror(keep_saves):
         if dst.exists() or dst.is_symlink():
             continue
         if item.is_dir():
-            subprocess.run(["cmd", "/c", "mklink", "/J", str(dst), str(item.resolve())],
-                           check=True, stdout=subprocess.DEVNULL)
+            if os.name == "nt":
+                subprocess.run(["cmd", "/c", "mklink", "/J", str(dst), str(item.resolve())],
+                               check=True, stdout=subprocess.DEVNULL)
+            else:
+                os.symlink(item.resolve(), dst, target_is_directory=True)
         else:
             try:
                 os.link(item.resolve(), dst)
@@ -63,6 +74,8 @@ def main():
     ap.add_argument("--seconds", type=float, default=90)
     ap.add_argument("--tag", default=time.strftime("run-%H%M%S"))
     ap.add_argument("--seq", default=IDLE_SEQ, help="RECOMP_INPUT_SEQ")
+    ap.add_argument("--to-level", action="store_true",
+                    help="play the menus into the first level first (LEVEL_SEQ)")
     ap.add_argument("--dump", type=int, default=0,
                     help="dump a frame every N swaps (RECOMP_HLE_D3D8_DUMP)")
     ap.add_argument("--keep-saves", action="store_true")
@@ -82,7 +95,7 @@ def main():
         "RECOMP_WINDOW_BACKGROUND": "1",
         "RECOMP_GAME_DIR": str(MIRROR),
         "RECOMP_SAVE_DIR": str(out / "saves"),
-        "RECOMP_INPUT_SEQ": args.seq,
+        "RECOMP_INPUT_SEQ": LEVEL_SEQ + "," + args.seq if args.to_level else args.seq,
     })
     if args.dump:
         (out / "frames").mkdir()

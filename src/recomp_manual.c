@@ -23,6 +23,10 @@
 #include <stddef.h>   /* ptrdiff_t: not in stdlib.h off MSVC */
 #include <stdlib.h>   /* getenv, exit: the spin verdict below */
 #include <string.h>   /* strcmp: RECOMP_ICALL_FATAL */
+#ifndef _MSC_VER
+#  include <strings.h>                  /* strncasecmp */
+#  define _strnicmp strncasecmp
+#endif
 
 /* One diagnostic report, one piece.
  *
@@ -447,7 +451,8 @@ void recomp_icall_not_code_log(uint32_t va, uint32_t saved_esp)
  * it is entering by the precache list it loads for it:
  * sub_00054A80 (this-call) builds y:\data\precachelists\autolists\<name>.pcl
  * from the name at this+0x20 -- bootupsequence, splashsequence, intro,
- * firstinteractivescreen, initialspacecheck, mainmenu, newgame, gamestart.
+ * frontendbackground, firstinteractivescreen, initialspacecheck, mainmenu,
+ * newgame, gamestart.
  * Everything from gamestart on is the game; a front-end list after it is
  * the way back out. */
 extern void xbox_D3D8SetWideFrames(int wide);
@@ -457,7 +462,7 @@ extern void sub_00054A80_gen(void);
 static int tk_is_front_end(const char *name)
 {
     static const char *const front[] = {
-        "begin", "bootupsequence", "splashsequence", "intro",
+        "begin", "bootupsequence", "splashsequence", "intro", "frontendbackground",
         "firstinteractivescreen", "initialspacecheck", "mainmenu", "newgame",
     };
     const char *base = name, *p;
