@@ -4,6 +4,8 @@
     py -3 scripts/build.py --relift     lift again, e.g. after new seeds or a toolkit update
     py -3 scripts/build.py --no-build   lift only
 
+(python3 instead of py -3 off Windows.)
+
 The game's files go in game/ at the root of this repository (default.xbe and
 the rest of the disc), or pass --game DIR.
 """
@@ -19,6 +21,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TOOLKIT = ROOT / "xboxrecomp"
 GEN = ROOT / "src" / "recomp" / "gen"
+WINDOWS = os.name == "nt"
+# Visual Studio is multi-configuration and puts Release under build/. Off
+# Windows a single-configuration Ninja build is given build/Release itself,
+# so the executable sits at the same depth and main.c's game path holds.
 BUILD = ROOT / "build"
 
 # Turok: Evolution, PAL (Europe), title 41430004, XDK 4627.
@@ -100,18 +106,23 @@ def main() -> int:
     if args.no_build:
         return 0
 
-    if not (BUILD / "CMakeCache.txt").is_file():
-        configure = ["cmake", "-S", ROOT, "-B", BUILD]
-        if not os.environ.get("CMAKE_GENERATOR"):
-            configure += ["-A", "x64"]
+    build = BUILD if WINDOWS else BUILD / args.config
+    if not (build / "CMakeCache.txt").is_file():
+        configure = ["cmake", "-S", ROOT, "-B", build]
+        if WINDOWS:
+            if not os.environ.get("CMAKE_GENERATOR"):
+                configure += ["-A", "x64"]
+        else:
+            configure += ["-G", "Ninja", f"-DCMAKE_BUILD_TYPE={args.config}"]
         if not run(configure):
             return fail("cmake configure failed")
-    if not run(["cmake", "--build", BUILD, "--config", args.config]):
+    if not run(["cmake", "--build", build, "--config", args.config, "--parallel"]):
         return fail("the build failed")
 
-    exe = BUILD / args.config / "turok_recomp.exe"
+    suffix = ".exe" if WINDOWS else ""
+    exe = BUILD / args.config / f"turok_recomp{suffix}"
     print(f"\nbuilt {exe}")
-    print(f"settings window: {exe.with_name('turok_recomp_launcher.exe')}")
+    print(f"settings window: {exe.with_name('turok_recomp_launcher' + suffix)}")
     return 0
 
 

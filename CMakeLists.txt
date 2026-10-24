@@ -42,11 +42,16 @@ if(NOT RECOMP_GEN_SOURCES)
         "Lift the game first: py -3 scripts/build.py")
 endif()
 
-add_executable(${PROJECT_NAME} WIN32
+add_executable(${PROJECT_NAME}
     src/main.c
     src/recomp_manual.c
     ${RECOMP_GEN_SOURCES}
 )
+# A windowed program on Windows (WinMain, no console); a plain executable
+# elsewhere, whose main() hands the game its own thread (host_main_posix).
+if(WIN32)
+    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE ON)
+endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE xboxrecomp)
 
@@ -56,14 +61,22 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${XBOXRECOMP_DIR}/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    d3d11
-    dxgi
-    dxguid
-    xinput
-    winmm
-    dbghelp     # lets the crash handler name the generated function that faulted
-)
+# Off Windows the runtime libraries bring their own host libraries (pthreads,
+# dl, SDL3, OpenSSL).
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        d3d11
+        dxgi
+        dxguid
+        xinput
+        winmm
+        dbghelp     # lets the crash handler name the generated function that faulted
+    )
+else()
+    # The POSIX fault report names a host pc with dladdr, which sees only
+    # exported symbols: export the generated functions.
+    set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS ON)
+endif()
 
 if(MSVC)
     # /DEBUG: a PDB in every configuration, so a crash names sub_XXXXXXXX.
