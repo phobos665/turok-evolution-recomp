@@ -1,10 +1,64 @@
 # turok-evolution-recomp
 
 Turok: Evolution for the original Xbox, recompiled into a native program for
-Windows and Linux (including SteamOS). You build it from your own copy of the
-game: the build translates the game's code to C on your machine and compiles
-it against the [DirectXbox-Recomp](https://github.com/phobos665/DirectXbox-Recomp)
-toolkit (`xboxrecomp/` here). This repository contains no game code or data.
+Windows, macOS and Linux (including SteamOS and the Steam Deck). You bring your
+own copy of the game, and it is built from that copy on your computer. This
+repository and its releases contain no game code or data.
+
+- [Play](#play): download, point it at your disc, play.
+- [Build it yourself](#build-it-yourself): for developers working on the port.
+
+# Play
+
+## What you need
+
+- Turok: Evolution, the European (PAL) release: a disc image (`.iso` or
+  `.xiso`) or a folder with the disc's files in it. Other releases are refused
+  (see [Releases of the game](#releases-of-the-game)).
+- 64-bit Windows 10 or 11, a Mac with Apple Silicon (macOS 13 or later), or
+  x86-64 Linux, SteamOS included, with Vulkan drivers.
+- About 500 MB of space, plus room for the game's files if you give it a disc
+  image (an image is unpacked once; a folder is used where it is).
+
+Nothing else needs installing: the download carries everything it builds the
+game with.
+
+## Download and start
+
+Download the file for your system from the
+[latest release](https://github.com/phobos665/turok-evolution-recomp/releases/latest):
+
+| System | File | Start |
+| --- | --- | --- |
+| Windows | `turok-<version>-windows-x86_64.zip` | Unzip it and run `turok.exe` |
+| macOS | `turok-<version>-macos-arm64.tar.xz` | Unpack it, then see [macOS](#macos) below |
+| Linux, SteamOS | `turok-<version>-linux-x86_64.tar.xz` | Unpack it and run `./turok` |
+
+The first time it starts, it asks for your copy of the game: choose **Disc
+image...** or **Folder...**, or paste a path. It then builds the game, which
+takes a few minutes (longer on a Steam Deck), and opens the settings. Press
+**Play**. After that it opens straight to the settings.
+
+**Windows** may say it protected your PC, because the release is not signed:
+choose More info, then Run anyway.
+
+### macOS
+
+Move `Turok Evolution.app` to Applications. It is not signed with an Apple
+Developer ID, so before opening it the first time, open Terminal and run
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Turok Evolution.app"
+```
+
+That clears the flag macOS puts on everything downloaded, from the app and the
+tools it builds the game with. Then open it.
+
+### Steam Deck and SteamOS
+
+Unpack the release in desktop mode and run `turok` once to build the game.
+To play from Game Mode, add `turok` to Steam (Add a Non-Steam Game) and give
+the shortcut `icon.png` from the release folder as its icon.
 
 ## What works
 
@@ -25,11 +79,110 @@ toolkit (`xboxrecomp/` here). This repository contains no game code or data.
 Tested on Linux (SteamOS, AMD). The port was first brought up on Windows;
 macOS has not been tried.
 
-## What you need
+## Controls
+
+Controllers work as an Xbox pad. The keyboard plays as controller 1:
+
+| Xbox | Key |
+| --- | --- |
+| D-pad | Arrows |
+| A, B, X, Y | Z, X, A, S |
+| Start, Back | Enter, Backspace |
+| White, Black | Q, W |
+| Left, right trigger | E, R |
+
+Change them in the launcher's Input tab. Its mouse look option turns the
+mouse into the right stick.
+
+While playing:
+
+| Key | |
+| --- | --- |
+| F9 | Show or hide the frame rate |
+| F10 | Change the frame cap: adaptive, 60, 30, 120, 144, off |
+| F11 | Save a screenshot and a capture of the frame, for bug reports |
+| Alt+Enter | Switch between fullscreen and a window |
+
+## Settings
+
+In the launcher's Video tab:
+
+| Setting | What it does |
+| --- | --- |
+| Resolution | Renders at 1 to 8 times 640x480 and filters down. 2 is much sharper and costs little |
+| Widescreen | 16:9, with the wider camera |
+| Texture sharpness | Anisotropic filtering, 1 to 16 |
+| Frame rate | Adaptive (the default, 60 as on the console), 60, 30, 90, 120, 144, 165, 240, or uncapped |
+| Show frame rate | Start with the counter on |
+| Fullscreen | Borderless fullscreen |
+| Variable refresh rate | In fullscreen, frames reach the display as they are ready. It has to be on in the display's driver too |
+
+For smoother motion, raise the frame cap to your display's refresh rate rather
+than using frame interpolation, which is not tuned for this game. Uncapped,
+the game can run at several hundred frames a second, and the loading screens
+at thousands; a cap saves power, which matters on a handheld.
+
+## Where things are kept
+
+The built game, its saves and the logs are in one folder per user:
+
+| | |
+| --- | --- |
+| Windows | `%LOCALAPPDATA%\xboxrecomp\builds\41430004\` |
+| macOS | `~/Library/Application Support/xboxrecomp/builds/41430004/` |
+| Linux | `~/.local/share/xboxrecomp/builds/41430004/` |
+
+In it, `game/UDATA/41430004/` holds your saves, `build.log` is the build's
+log and `turok_recomp.log` the game's. Your own disc or folder is never
+written to.
+
+The settings and controls are kept apart from the build:
+
+| | Settings | Controls |
+| --- | --- | --- |
+| Windows | `%APPDATA%\xboxrecomp\titles\41430004.conf` | `%APPDATA%\xboxrecomp\input_bindings.json` |
+| macOS | `~/Library/Application Support/xboxrecomp/titles/41430004.conf` | `~/Library/Application Support/xboxrecomp/input_bindings.json` |
+| Linux | `~/.config/xboxrecomp/titles/41430004.conf` | `~/.config/xboxrecomp/input_bindings.json` |
+
+## Updating
+
+Download the new release and start it. It sees that the game was built by an
+older release and offers **Build again**, with your disc remembered. Saves and
+settings carry over.
+
+## Problems
+
+- The disc is refused: it is not the release below. Please open an issue with
+  the title, region and SHA-1 the message shows.
+- The build fails: open an issue and attach `build.log` (see [Where things
+  are kept](#where-things-are-kept)).
+- A black window and nothing else: attach `turok_recomp.log` from the same
+  folder.
+- A rendering bug in one place: press F11 there, and attach the `.bmp` and
+  `.d3dcap` files it writes beside the game.
+
+## Releases of the game
+
+The game is recognised by the SHA-1 of its `default.xbe`:
+
+| Release | `default.xbe` SHA-1 |
+| --- | --- |
+| Europe (PAL) | `e6510e44ca99b67b9015c27f04bc1b49ce8c0f9a` |
+
+Any other disc, such as the USA release, is refused; please open an issue
+with its SHA-1.
+
+# Build it yourself
+
+For working on the port. This builds the same game by hand, from a clone,
+against the [DirectXbox-Recomp](https://github.com/phobos665/DirectXbox-Recomp)
+toolkit (`xboxrecomp/` here): the build translates the game's code to C, then
+compiles it.
+
+## What you need to build
 
 Turok: Evolution, the European (PAL) release, extracted from your disc. The
-build reads `default.xbe` and warns if it is a different release (see
-[Other releases](#other-releases)).
+build reads `default.xbe` and warns if it is a different release.
 
 Windows 10 or 11, 64-bit:
 
@@ -113,78 +266,41 @@ set `RECOMP_GAME_DIR` when you play.
 
 If you cloned without `--recursive`, run `git submodule update --init --recursive`.
 
-## Play
+## Running a build of your own
 
-Run the launcher to choose settings and play, or the game itself to start
-straight away. You can make a shortcut to either from anywhere. On SteamOS,
-add the launcher to Steam as a non-Steam game (Steam's "Add a Non-Steam Game"
-in desktop mode) to play it from Game Mode.
+The controls and settings are the ones in [Play](#play). Every setting is also
+a line in the settings file and an environment variable, which wins over the
+file:
 
-| Key | |
-| --- | --- |
-| F9 | Show or hide the frame rate |
-| F10 | Change the frame cap: adaptive, 60, 30, 120, 144, off |
-| F11 | Save a screenshot and a capture of the frame beside the program, for bug reports |
-| Alt+Enter | Switch between fullscreen and a window |
+| Setting | File | Environment |
+| --- | --- | --- |
+| Resolution | `resolution_scale` | `RECOMP_RES_SCALE` |
+| Widescreen | `widescreen` | `RECOMP_WIDESCREEN` |
+| Texture sharpness | `anisotropy` | `RECOMP_ANISO` |
+| Frame rate | `frame_cap` (0 for uncapped) | `RECOMP_FPS_CAP` |
+| Show frame rate | `fps_overlay` | `RECOMP_FPS_OVERLAY` |
+| Fullscreen | `fullscreen` | `RECOMP_FULLSCREEN` |
+| Variable refresh rate | `vrr` | `RECOMP_VRR` |
 
-Controllers work as an Xbox pad. The keyboard plays as controller 1:
-
-| Xbox | Key |
-| --- | --- |
-| D-pad | Arrows |
-| A, B, X, Y | Z, X, A, S |
-| Start, Back | Enter, Backspace |
-| White, Black | Q, W |
-| Left, right trigger | E, R |
-
-Change them in the launcher's Input tab, or in `input_bindings.json` (format in
-`xboxrecomp/docs/technical/input-binding.md`). The Input tab's mouse look
-option turns the mouse into the right stick.
+The settings and controls files are as in [Where things are
+kept](#where-things-are-kept); the controls' format is in
+`xboxrecomp/docs/technical/input-binding.md`. What differs from a release:
 
 | | Windows | Linux |
 | --- | --- | --- |
 | Saves | `game\UDATA\41430004\` | `game/UDATA/41430004/` |
-| Settings | `%APPDATA%\xboxrecomp\titles\41430004.conf` | `~/.config/xboxrecomp/titles/41430004.conf` |
-| Controls | `%APPDATA%\xboxrecomp\input_bindings.json` | `~/.config/xboxrecomp/input_bindings.json` |
 | Log, when not started from a terminal | `build\Release\turok_recomp.log` | `build/Release/turok_recomp.log` |
 
-## Settings
+## Other releases of the game
 
-These are rows in the launcher's Video tab, and lines in the settings file.
-Every line can also be set with the environment variable shown, which wins
-over the file.
+`config/` lists addresses inside the PAL `default.xbe`: function entry points
+the translation needs, and the XDK functions the toolkit replaces. The fixes
+in `src/recomp_manual.c` attach to addresses in it too. Any other disc, such
+as the USA release, needs its own addresses. The build prints a warning with
+the SHA-1 and carries on, but the result is unlikely to run; please open an
+issue with it.
 
-| Setting | File | What it does |
-| --- | --- | --- |
-| Resolution | `resolution_scale` (`RECOMP_RES_SCALE`) | Renders at 1 to 8 times 640x480 and filters down. 2 is much sharper and costs little |
-| Widescreen | `widescreen` (`RECOMP_WIDESCREEN`) | 16:9, with the wider camera |
-| Texture sharpness | `anisotropy` (`RECOMP_ANISO`) | Anisotropic filtering, 1 to 16 |
-| Frame rate | `frame_cap` (`RECOMP_FPS_CAP`) | Adaptive (the default, 60 as on the console), 60, 30, 90, 120, 144, 165, 240, or 0 for uncapped |
-| Show frame rate | `fps_overlay` (`RECOMP_FPS_OVERLAY`) | Start with the counter on |
-| Fullscreen | `fullscreen` (`RECOMP_FULLSCREEN`) | Borderless fullscreen |
-| Variable refresh rate | `vrr` (`RECOMP_VRR`) | In fullscreen, frames reach the display as they are ready. It has to be on in the display's driver too |
-
-For smoother motion, raise the frame cap to your display's refresh rate rather
-than using frame interpolation, which is not tuned for this game. Uncapped,
-the game can run at several hundred frames a second, and the loading screens
-at thousands; a cap saves power, which matters on a handheld.
-
-## Other releases
-
-The build identifies the release by the SHA-1 of `default.xbe`:
-
-| Release | `default.xbe` SHA-1 |
-| --- | --- |
-| Europe (PAL) | `e6510e44ca99b67b9015c27f04bc1b49ce8c0f9a` |
-
-`config/` lists addresses inside that `default.xbe`: function entry points the
-translation needs, and the XDK functions the toolkit replaces. The fixes in
-`src/recomp_manual.c` attach to addresses in it too. Any other disc, such as
-the USA release, needs its own addresses. The build prints a warning with the
-SHA-1 and carries on, but the result is unlikely to run; please open an issue
-with it.
-
-## Updating
+## Updating a clone
 
 ```sh
 git pull
@@ -197,20 +313,27 @@ translates the game again, which is needed whenever the toolkit, `config/` or
 `src/recomp_manual.c` changes. `--relift --from lift` repeats only the last
 stage, which is enough after a change to `src/recomp_manual.c`.
 
-## Problems
+## Making a release
+
+Pushing a version tag (`git tag v1.0 && git push origin v1.0`) runs
+`.github/workflows/release.yml`, which builds the Windows, macOS and Linux
+downloads from `release/turok.json` and attaches them to the tag's GitHub
+release. No game files are involved. How the downloads work is in the
+toolkit's
+[self-build-release.md](https://github.com/phobos665/DirectXbox-Recomp/blob/main/docs/technical/self-build-release.md).
+
+## Build problems
 
 - "no default.xbe in ...": the disc's files are not in `game/`.
 - Linux, "DXC (the shader compiler) is missing": run
   `bash xboxrecomp/tools/linux/fetch_dxc.sh`, then build again.
-- A black window and nothing else: read the log (see [Play](#play)).
-- A rendering bug in one place: press F11 there, and attach the `.bmp` and
-  `.d3dcap` files it writes to an issue.
 
-## Legal
+# Legal
 
-You need your own copy of Turok: Evolution. Do not share `game/`,
-`src/recomp/` (it is the game's translated code) or anything in `build/`.
-This repository and xboxrecomp contain no game code or assets.
+You need your own copy of Turok: Evolution. Do not share the game's files, the
+built game, a clone's `src/recomp/` (it is the game's translated code) or
+anything in `build/`. This repository, its releases and xboxrecomp contain no
+game code or assets.
 
 The code in this repository is licensed under the GNU General Public License
 v3.0; see [LICENSE](LICENSE). That covers the files committed here, not the game.
