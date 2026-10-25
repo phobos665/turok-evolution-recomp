@@ -78,7 +78,7 @@ jobs:
           path: ${{ runner.temp }}/release/*.tar.xz
           retention-days: 3
 
-  # An application, Turok: Evolution.app, for Apple Silicon. The player needs
+  # An application, Turok Evolution.app, for Apple Silicon. The player needs
   # no Xcode: zig builds the game. SDL and the launcher are built here with
   # Xcode, and the Vulkan loader, MoltenVK and DXC come from LunarG's SDK.
   macos:
@@ -184,5 +184,5 @@ jobs:
           ls -l archives
           gh release view "$VERSION" >/dev/null 2>&1 || \
             gh release create "$VERSION" --title "$VERSION" --verify-tag \
-              --notes "Point the launcher at your own copy of Turok: Evolution and it builds the game on your machine, once. Linux: unpack turok-$VERSION-linux-x86_64.tar.xz and run ./turok. Windows (64-bit, 10 or 11): unzip turok-$VERSION-windows-x86_64.zip and run turok.exe (it is not signed: if Windows says it protected your PC, choose More info, Run anyway). Mac (Apple Silicon, macOS 13 or later): unpack turok-$VERSION-macos-arm64.tar.xz, move Turok: Evolution.app to Applications, and before opening it the first time run xattr -dr com.apple.quarantine \"/Applications/Turok: Evolution.app\" in Terminal (it is not signed with an Apple Developer ID). See README.txt inside."
+              --notes "Point the launcher at your own copy of Turok: Evolution and it builds the game on your machine, once. Linux: unpack turok-$VERSION-linux-x86_64.tar.xz and run ./turok. Windows (64-bit, 10 or 11): unzip turok-$VERSION-windows-x86_64.zip and run turok.exe (it is not signed: if Windows says it protected your PC, choose More info, Run anyway). Mac (Apple Silicon, macOS 13 or later): unpack turok-$VERSION-macos-arm64.tar.xz, move Turok Evolution.app to Applications, and before opening it the first time run xattr -dr com.apple.quarantine \"/Applications/Turok Evolution.app\" in Terminal (it is not signed with an Apple Developer ID). See README.txt inside."
           gh release upload "$VERSION" archives/*.tar.xz archives/*.zip --clobber
